@@ -1,0 +1,105 @@
+<html>
+
+<head>
+	<script src="https://d3js.org/d3.v4.min.js"></script>
+
+</head>
+
+<body>
+	<div id="grid"></div>
+</body>
+
+
+<script>
+function getData(){
+	var xPos = 1
+	var yPos = 1
+	var width = 100
+	var height = 100
+	var data = new Array()
+
+	var numRows = 4
+	var numCols = 4
+
+	for(var row = 0; row < numRows; row ++){
+		data.push(new Array())
+
+		for(var col = 0; col < numCols; col ++){
+			data[row].push({
+				x: xPos,
+				y: yPos,
+				width: width,
+				height: height
+			})
+			xPos += width
+		}
+		xPos = 1
+		yPos += height
+	}
+
+	return data
+}
+
+var gridData = getData()
+console.log(gridData)
+
+
+function drawGrid(){
+	var grid = d3.select("#grid")
+		.append("svg")
+		.attr("width", "402px")
+		.attr("height", "402px")
+
+	var row = grid.selectAll(".row")
+		.data(gridData)
+		.enter()
+		.append("g")
+		.attr("class", "row")
+
+	var column = row.selectAll(".square")
+		.data(function(d) { return d })
+		.enter()
+		.append("rect")
+		.attr("class", "square")
+		.attr("x", function(d){ return d.x })
+		.attr("y", function(d){ return d.y })
+		.attr("width", function(d){ return d.width })
+		.attr("height", function(d){ return d.height })
+		.style("fill", "#fff")
+	    .style("stroke", "#222");
+}
+
+function drawBall(xPos, yPos) {
+
+	d3.select(".circle")
+		.remove()
+		.exit()
+
+		
+	var ball = d3.select("#grid")
+		.select("svg")
+		.append("g")
+		.attr("class", "circle")
+		.append("circle")
+		.attr("cx", (50 + 100 * (xPos - 1)) + "px")
+		.attr("cy", (50 + 100 * (yPos - 1)) + "px")
+		.attr("r", "25px")
+		.style("fill", "red")
+		.style("stroke", "black")
+		.style("stroke-width", "3")
+}
+
+drawGrid()
+
+function doAllTheStuff(){
+	
+	drawBall(Math.floor(Math.random() * 4) + 1  , Math.floor(Math.random() * 4) + 1)
+}
+
+d3.interval(doAllTheStuff, 500)
+
+ </script>
+
+
+
+</html>
