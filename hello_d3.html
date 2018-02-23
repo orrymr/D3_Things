@@ -7,19 +7,21 @@
 
 <body>
 	<div id="grid"></div>
+	<div id="coords"></div>
+	<div id="lastaction"></div>
 </body>
 
 
 <script>
+var numRows = 6
+var numCols = 6
+
 function getData(){
 	var xPos = 1
 	var yPos = 1
 	var width = 100
 	var height = 100
 	var data = new Array()
-
-	var numRows = 4
-	var numCols = 4
 
 	for(var row = 0; row < numRows; row ++){
 		data.push(new Array())
@@ -41,14 +43,13 @@ function getData(){
 }
 
 var gridData = getData()
-console.log(gridData)
 
 
 function drawGrid(){
 	var grid = d3.select("#grid")
 		.append("svg")
-		.attr("width", "402px")
-		.attr("height", "402px")
+		.attr("width", (100 * numCols + 2) + "px")
+		.attr("height", (100 * numRows + 2) + "px")
 
 	var row = grid.selectAll(".row")
 		.data(gridData)
@@ -74,7 +75,6 @@ function drawBall(xPos, yPos) {
 	d3.select(".circle")
 		.remove()
 		.exit()
-
 		
 	var ball = d3.select("#grid")
 		.select("svg")
@@ -89,16 +89,96 @@ function drawBall(xPos, yPos) {
 		.style("stroke-width", "3")
 }
 
-drawGrid()
+function printCoords(coords){
+	d3.select("#coords")
+		.select("p")
+		.remove()
+		.exit()
 
-function doAllTheStuff(){
-	
-	drawBall(Math.floor(Math.random() * 4) + 1  , Math.floor(Math.random() * 4) + 1)
+	d3.select("#coords")
+		.append("p")
+		.text("(" + coords + ")")
 }
 
-d3.interval(doAllTheStuff, 500)
+function printLastAction(lastaction){
+	d3.select("#lastaction")
+		.select("p")
+		.remove()
+		.exit()
 
- </script>
+	d3.select("#lastaction")
+		.append("p")
+		.text("Last Action: " + lastaction)
+
+	if(collision){
+		console.log("collision!")
+		d3.select("#lastaction")
+			.select("p")
+			.style("color", "red")
+	}
+}
+
+function doAllTheStuff(){
+	var xPos = Math.floor(Math.random() * numCols) + 1
+	var yPos = Math.floor(Math.random() * numRows) + 1
+	var coords = [xPos, yPos]
+	drawBall(xPos, yPos)
+}
+
+function getNextAction(){
+	actions = ["n", "s", "w", "e"]
+	return actions[Math.floor(Math.random() * actions.length)];
+}
+
+function takeAction(coords, action){
+	if(action == 'n'){
+		if (coords[1] == 1){
+			collision = true;
+			return coords
+		}
+		else
+			return [coords[0], coords[1] - 1]
+	} else if (action == 's'){
+		if(coords[1] == numRows){
+			collision = true;
+			return coords 
+		}
+		else
+			return [coords[0], coords[1] + 1]
+	} else if (action == 'w'){
+		if(coords[0] == 1){
+			collision = true
+			return coords
+		}
+		else 
+			return [coords[0] - 1, coords[1]]
+	} else if (action == 'e'){
+		if(coords[0] == numCols){
+			collision = true
+			return coords
+		}
+		else 
+			return [coords[0] + 1, coords[1]]
+	}
+}
+
+function playGame(){
+	collision = false
+	action = getNextAction()
+	coords = takeAction(coords, action)
+	drawBall(coords[0], coords[1])
+	printCoords(coords)
+	printLastAction(action)
+}
+
+var collision = false
+var coords = [1, numRows] //Starting co-ords
+drawGrid()
+drawBall(coords[0], coords[1])
+printCoords(coords)
+d3.interval(playGame, 1000)
+
+</script>
 
 
 
