@@ -20,8 +20,8 @@
 
 
 <script>
-var numRows = 6
-var numCols = 6
+var numRows = 10
+var numCols = 10
 
 function getData(){
 	var xPos = 1
@@ -79,7 +79,7 @@ function drawGrid(){
 		// .attr("valueAtState", function(d){ return v.getValue(d.yIdx, d.xIdx) })
 		.attr("valueAtState", function(d){ return Math.round(normalized[d.yIdx][d.xIdx] * 255) })
 		// .style("fill", function(d){return "rgb(180, 180, 180)"})
-		.style("fill", function(d){ return "rgb(" + (255 - Math.round(normalized[d.yIdx][d.xIdx] * 255)) + ", " + (255 - Math.round(normalized[d.yIdx][d.xIdx] * 255)) + ", " + (255 - Math.round(normalized[d.yIdx][d.xIdx] * 255)) + ")"})
+		.style("fill", function(d){ return "rgb(" + (Math.round(normalized[d.yIdx][d.xIdx] * 255)) + ", " + (Math.round(normalized[d.yIdx][d.xIdx] * 255)) + ", " + (Math.round(normalized[d.yIdx][d.xIdx] * 255)) + ")"})
 	    .style("stroke", "#222");
 }
 
@@ -283,9 +283,9 @@ class RewardFunction{
 	}
 }
 
-p = new Policy(6, 6);
-v = new ValueFunction(6, 6);
-r = new RewardFunction(6, 6);
+p = new Policy(numRows, numCols);
+v = new ValueFunction(numRows, numCols);
+r = new RewardFunction(numRows, numCols);
 gamma = 0.9;
 
 function policyEvaluation(height, width){
@@ -311,7 +311,7 @@ function policyEvaluation(height, width){
 }	
 
 var numIter = 0;
-policyEvaluation(6, 6);
+policyEvaluation(numRows, numCols);
 console.log(numIter);
 normalized = v.getNormalized()
 
