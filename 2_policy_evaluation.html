@@ -6,6 +6,13 @@
 </head>
 
 <body>
+	<div id="WriteUp">
+		This is from Page 89 of https://web.stanford.edu/class/psych209/Readings/SuttonBartoIPRLBook2ndEd.pdf
+		I implement Policy Evaluation. Dynamic Programming.
+		DP assumes full model of environment. Computationally Expensive.
+		Policy Evaluation is used to determine the State-Value function for a given policy pi.
+		It can be solved in closed form. But we turn the Bellman Equation into an update rule, which eventually converges to the true state value function for a given policy, pi.
+	</div>
 	<div id="grid"></div>
 	<div id="coords"></div>
 	<div id="lastaction"></div>
@@ -19,8 +26,8 @@ var numCols = 6
 function getData(){
 	var xPos = 1
 	var yPos = 1
-	var width = 100
-	var height = 100
+	var widthPx = 100
+	var heightPx = 100
 	var data = new Array()
 
 	for(var row = 0; row < numRows; row ++){
@@ -30,20 +37,19 @@ function getData(){
 			data[row].push({
 				x: xPos,
 				y: yPos,
-				width: width,
-				height: height
+				width: widthPx,
+				height: heightPx
 			})
-			xPos += width
+			xPos += widthPx
 		}
 		xPos = 1
-		yPos += height
+		yPos += heightPx
 	}
 
 	return data
 }
 
 var gridData = getData()
-
 
 function drawGrid(){
 	var grid = d3.select("#grid")
@@ -81,8 +87,8 @@ function drawBall(xPos, yPos) {
 		.append("g")
 		.attr("class", "circle")
 		.append("circle")
-		.attr("cx", (50 + 100 * (xPos - 1)) + "px")
-		.attr("cy", (50 + 100 * (yPos - 1)) + "px")
+		.attr("cx", (50 + 100 * (xPos)) + "px")
+		.attr("cy", (50 + 100 * (yPos)) + "px")
 		.attr("r", "25px")
 		.style("fill", "red")
 		.style("stroke", "black")
@@ -118,13 +124,6 @@ function printLastAction(lastaction){
 	}
 }
 
-function doAllTheStuff(){
-	var xPos = Math.floor(Math.random() * numCols) + 1
-	var yPos = Math.floor(Math.random() * numRows) + 1
-	var coords = [xPos, yPos]
-	drawBall(xPos, yPos)
-}
-
 function getNextAction(){
 	actions = ["n", "s", "w", "e"]
 	return actions[Math.floor(Math.random() * actions.length)];
@@ -132,28 +131,28 @@ function getNextAction(){
 
 function takeAction(coords, action){
 	if(action == 'n'){
-		if (coords[1] == 1){
+		if (coords[1] == 0){
 			collision = true;
 			return coords
 		}
 		else
 			return [coords[0], coords[1] - 1]
 	} else if (action == 's'){
-		if(coords[1] == numRows){
+		if(coords[1] == numRows - 1){
 			collision = true;
 			return coords 
 		}
 		else
 			return [coords[0], coords[1] + 1]
 	} else if (action == 'w'){
-		if(coords[0] == 1){
+		if(coords[0] == 0){
 			collision = true
 			return coords
 		}
 		else 
 			return [coords[0] - 1, coords[1]]
 	} else if (action == 'e'){
-		if(coords[0] == numCols){
+		if(coords[0] == numCols - 1){
 			collision = true
 			return coords
 		}
@@ -172,49 +171,124 @@ function playGame(){
 }
 
 var collision = false
-var coords = [1, numRows] //Starting co-ords
+var coords = [0, numRows - 1] //Starting co-ords
 drawGrid()
 drawBall(coords[0], coords[1])
 printCoords(coords)
-d3.interval(playGame, 1000)
+//d3.interval(playGame, 1000)
 
 
-/* Action Probabilities */
 class ActionProbabilities {
 	constructor(){
-		this.n = 0.25
-		this.s = 0.25
-		this.e = 0.25
-		this.w = 0.25
+		this.actionProbs = {
+			"n": 0.25,
+			"s": 0.25,
+			"e": 0.25,
+			"w": 0.25
+		};
 	}
-
-	// constructor(n, s, w, e){
-	// 	this.n = n
-	// 	this.s = s
-	// 	this.e = e
-	// 	this.w = w
-	// }
 }
 
 
 /* Policy Class */
 
 class Policy {
-  constructor(numRows, numCols) {
-    this.rows = new Array (numRows)
-    for (var row = 0; row < numRows; row ++){
-    	this.rows[row] = new Array(numCols)
-    	for (var col = 0; col < numCols; col ++){
-    		this.rows[row][col] = new ActionProbabilities();
+  constructor(height, width) {
+    this.rows = new Array (height);
+    for (var y = 0; y < height; y ++){
+    	this.rows[y] = new Array(width)
+    	for (var x = 0; x < width; x ++){
+    		this.rows[y][x] = new ActionProbabilities();
     	}
     }
   }
 
+	getPolicyAtState(y, x){
+		return (this.rows[y][x].actionProbs);
+	}
+
 }
 
-p = new Policy(6, 6)
+class ValueFunction{
+	constructor(height, width){
+		this.height = height;
+		this.width = width;
+		this.rows = new Array(height);
+		for (var y = 0; y < height; y++){
+			this.rows[y] = new Array(width)
+			for(var x = 0; x < numCols; x++){
+				this.rows[y][x] = 0;
+			}
+		}
+	}
 
-console.log(p)
+	getValue(y, x){
+		return (this.rows[y][x])
+	}
+
+	setValue(y, x, value){
+		this.rows[y][x] = value;
+	}
+
+	print(){
+		for (var y = 0; y < this.height; y++){
+			var line = "";
+			for(var x = 0; x < this.width; x++){
+				//TODO: Pretty this print up at some point (for spaces)
+				line = line + (Math.round(this.rows[y][x] * 1000) / 1000).toString() + "|";
+			}
+			console.log(line);
+		}
+	}
+}
+
+class RewardFunction{
+	constructor(height, width){
+		this.rows = new Array(height);
+		for (var y = 0; y < height; y++){
+			this.rows[y] = new Array(width)
+			for(var x = 0; x < numCols; x++){
+				this.rows[y][x] = -1;
+			}
+		}
+		this.rows[0][width - 1] = 0; //set goal state to top right
+	}
+
+	getReward(y, x){
+		return (this.rows[y][x])
+	}
+}
+
+p = new Policy(6, 6);
+v = new ValueFunction(6, 6);
+r = new RewardFunction(6, 6);
+gamma = 0.9;
+
+function policyEvaluation(height, width){
+	theta = 0.1;
+	do {
+		delta = 0;
+		for (var y = 0; y < height; y++){
+			for(var x = 0; x < width; x++){
+				currentV = v.getValue(y, x);
+				policyAtState = p.getPolicyAtState(y, x);
+				newValueAtState = Object.keys(policyAtState).map(function(key, index){
+					nextState = takeAction([y, x], key);
+					rewardAtNextState = r.getReward(nextState[0], nextState[1]);
+					discountedValueAtNextState = gamma * v.getValue(nextState[0], nextState[1]);
+					return (policyAtState[key] * (rewardAtNextState + discountedValueAtNextState));
+				}).reduce((a, b) => a + b, 0);
+				v.setValue(y, x, newValueAtState);
+				delta = Math.max(delta, Math.abs(currentV - newValueAtState));
+				numIter ++;
+			}
+		}
+	} while(delta >= theta)
+}	
+
+var numIter = 0;
+policyEvaluation(6, 6);
+console.log(numIter);
 </script>
 
 
