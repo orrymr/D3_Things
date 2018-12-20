@@ -35,6 +35,8 @@ function getData(){
 
 		for(var col = 0; col < numCols; col ++){
 			data[row].push({
+				xIdx: col,
+				yIdx: row,
 				x: xPos,
 				y: yPos,
 				width: widthPx,
@@ -72,7 +74,12 @@ function drawGrid(){
 		.attr("y", function(d){ return d.y })
 		.attr("width", function(d){ return d.width })
 		.attr("height", function(d){ return d.height })
-		.style("fill", "#fff")
+		.attr("yIdx", function(d){ return d.yIdx })
+		.attr("xIdx", function(d){ return d.xIdx })
+		// .attr("valueAtState", function(d){ return v.getValue(d.yIdx, d.xIdx) })
+		.attr("valueAtState", function(d){ return Math.round(normalized[d.yIdx][d.xIdx] * 255) })
+		// .style("fill", function(d){return "rgb(180, 180, 180)"})
+		.style("fill", function(d){ return "rgb(" + (255 - Math.round(normalized[d.yIdx][d.xIdx] * 255)) + ", " + (255 - Math.round(normalized[d.yIdx][d.xIdx] * 255)) + ", " + (255 - Math.round(normalized[d.yIdx][d.xIdx] * 255)) + ")"})
 	    .style("stroke", "#222");
 }
 
@@ -170,14 +177,6 @@ function playGame(){
 	printLastAction(action)
 }
 
-var collision = false
-var coords = [0, numRows - 1] //Starting co-ords
-drawGrid()
-drawBall(coords[0], coords[1])
-printCoords(coords)
-//d3.interval(playGame, 1000)
-
-
 class ActionProbabilities {
 	constructor(){
 		this.actionProbs = {
@@ -240,6 +239,31 @@ class ValueFunction{
 			console.log(line);
 		}
 	}
+
+	getNormalized(){
+		var normalized = new Array();
+		var min = Infinity;
+		var max = -Infinity;
+		//Todo: Make more efficient.. if you care enough. Only gets run once at the end
+		for (var y = 0; y < this.height; y++){
+			normalized.push(new Array())
+			for(var x = 0; x < this.width; x++){
+				var abs = Math.abs(v.getValue(y, x))
+				normalized[y].push(abs);
+				if(abs < min)
+					min = abs
+				if(abs > max)
+					max = abs
+			}
+		}
+
+		for (var y = 0; y < this.height; y++){
+			for(var x = 0; x < this.width; x++){
+				normalized[y][x] = (normalized[y][x] - min) / (max - min)
+			}
+		}
+		return normalized;
+	}
 }
 
 class RewardFunction{
@@ -289,6 +313,15 @@ function policyEvaluation(height, width){
 var numIter = 0;
 policyEvaluation(6, 6);
 console.log(numIter);
+normalized = v.getNormalized()
+
+
+var collision = false
+var coords = [0, numRows - 1] //Starting co-ords
+drawGrid()
+drawBall(coords[0], coords[1])
+printCoords(coords)
+//d3.interval(playGame, 1000)
 </script>
 
 
