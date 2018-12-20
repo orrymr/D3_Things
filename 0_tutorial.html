@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<script src="https://d3js.org/d3.v4.min.js"></script>
+	<title>0_tutorial</title>
+</head>
+<body>
+
+	<div id="myDiv1">
+		Here is some text.
+	</div>
+
+	<ul id = "list1">
+	   <li></li>
+	   <li></li>
+	</ul> 
+
+</body>
+
+<script>
+	// We can use select() to select an element
+	// Let's use select() to get the text from myDiv1, and print it to the console!
+	console.log(d3.select("#myDiv1").text());
+
+	// Let's use D3 to append a new element to the DOM
+	d3.select("body").append("div").text("New Text");
+
+	//Data Join
+	//Since list1 only has 2 "li" elements, only 2 of the 5 elements of the array get joined to it
+	d3.select("#list1")
+		.selectAll("li")
+		.data([10, 20, 30, 25, 15])
+		.text(function(d) { return "This is pre-existing element and the value is " + d; })
+		.enter()
+		.append("li")
+   		.text(function(d) { return "This is dynamically created element and the value is " + d; });
+
+</script>
+
+</html>
