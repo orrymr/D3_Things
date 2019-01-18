@@ -68,17 +68,27 @@ function drawGrid(){
 	var column = row.selectAll(".square")
 		.data(function(d) { return d })
 		.enter()
-		.append("rect")
-		.attr("class", "square")
-		.attr("x", function(d){ return d.x })
-		.attr("y", function(d){ return d.y })
-		.attr("width", function(d){ return d.width })
-		.attr("height", function(d){ return d.height })
-		.attr("yIdx", function(d){ return d.yIdx })
-		.attr("xIdx", function(d){ return d.xIdx })
-		.attr("valueAtState", function(d){ return Math.round(normalized[d.yIdx][d.xIdx] * 255) })
-		.style("fill", function(d){ return "rgb(" + (Math.round(normalized[d.yIdx][d.xIdx] * 255)) + ", " + (Math.round(normalized[d.yIdx][d.xIdx] * 255)) + ", " + (Math.round(normalized[d.yIdx][d.xIdx] * 255)) + ")"})
-	    .style("stroke", "#222");
+		.append("g");
+
+		column
+			.append("rect")
+			.attr("class", "square")
+			.attr("x", function(d){ return d.x })
+			.attr("y", function(d){ return d.y })
+			.attr("width", function(d){ return d.width })
+			.attr("height", function(d){ return d.height })
+			.attr("yIdx", function(d){ return d.yIdx })
+			.attr("xIdx", function(d){ return d.xIdx })
+			.attr("valueAtState", function(d){ return Math.round(normalized[d.yIdx][d.xIdx] * 255) })
+			.style("fill", function(d){ return "rgb(" + (Math.round(normalized[d.yIdx][d.xIdx] * 255)) + ", " + (Math.round(normalized[d.yIdx][d.xIdx] * 255)) + ", " + (Math.round(normalized[d.yIdx][d.xIdx] * 255)) + ")"})
+		    .style("stroke", "#222");
+
+		column
+			.append("text")
+			// .text(function(d) { return Math.round(normalized[d.yIdx][d.xIdx] })
+			.text(function(d){ return Math.round(normalized[d.yIdx][d.xIdx] * 1000) })
+			.attr("x", function(d){ return d.x + d.width / 2 })
+			.attr("y", function(d){ return d.y + d.height / 2 });
 }
 
 function drawBall(xPos, yPos) {
@@ -129,36 +139,51 @@ function printLastAction(lastaction){
 	}
 }
 
-function getNextAction(){
+function getGreedyAction(){
 	actions = ["n", "s", "w", "e"]
-	return actions[Math.floor(Math.random() * actions.length)];
+	bestValue = -Infinity
+	bestAction = "n"
+	for (var i = 0; i < actions.length; i++){
+		resultingState = takeAction(coords, actions[i], ignoreCollision = true)
+		v_prime = v.getValue(coords[0], coords[1])
+		console.log(actions[i] + " " + v_prime + " " + resultingState)
+		if(v_prime > bestValue){
+			bestValue = v_prime
+			bestAction = actions[i]
+		}
+	}
+	return bestAction;
 }
 
-function takeAction(coords, action){
+function takeAction(coords, action, ignoreCollision = false){
 	if(action == 'n'){
 		if (coords[1] == 0){
-			collision = true;
+			if(!ignoreCollision)
+				collision = true;
 			return coords
 		}
 		else
 			return [coords[0], coords[1] - 1]
 	} else if (action == 's'){
 		if(coords[1] == numRows - 1){
-			collision = true;
+			if(!ignoreCollision)
+				collision = true;
 			return coords 
 		}
 		else
 			return [coords[0], coords[1] + 1]
 	} else if (action == 'w'){
 		if(coords[0] == 0){
-			collision = true
+			if(!ignoreCollision)
+				collision = true
 			return coords
 		}
 		else 
 			return [coords[0] - 1, coords[1]]
 	} else if (action == 'e'){
 		if(coords[0] == numCols - 1){
-			collision = true
+			if(!ignoreCollision)
+				collision = true
 			return coords
 		}
 		else 
@@ -168,7 +193,7 @@ function takeAction(coords, action){
 
 function playGame(){
 	collision = false
-	action = getNextAction()
+	action = getGreedyAction()
 	coords = takeAction(coords, action)
 	drawBall(coords[0], coords[1])
 	printCoords(coords)
@@ -287,7 +312,7 @@ r = new RewardFunction(numRows, numCols);
 gamma = 0.9;
 
 function policyEvaluation(height, width){
-	theta = 0.1;
+	theta = 0.000001;
 	do {
 		delta = 0;
 		for (var y = 0; y < height; y++){
@@ -319,7 +344,7 @@ var coords = [0, numRows - 1] //Starting co-ords
 drawGrid()
 drawBall(coords[0], coords[1])
 printCoords(coords)
-//d3.interval(playGame, 1000)
+d3.interval(playGame, 1000)
 </script>
 
 
